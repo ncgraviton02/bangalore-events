@@ -1,0 +1,111 @@
+---
+// src/components/EventsMap.astro
+---
+
+<div id="map" class="w-full h-96 md:h-screen"></div>
+<div id="sidebar" class="md:fixed md:top-0 md:left-0 md:w-80 md:h-screen md:bg-white md:shadow-lg md:z-1000 md:overflow-y-auto">
+  <div class="p-4">
+    <h1 class="text-2xl font-bold mb-4">Bangalore Weekend Events</h1>
+    <div id="filters" class="mb-4"></div>
+    <div id="events-list" class="space-y-4"></div>
+  </div>
+</div>
+
+<script>
+import L from 'leaflet';
+
+// Initialize map
+const map = L.map('map').setView([12.9716, 77.5946], 12);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+// Category colors
+const categoryColors = {
+  'Tech': '#3B82F6',
+  'Startup': '#F97316', 
+  'Arts/Culture': '#A855F7',
+  'Music': '#10B981',
+  'Food/Drinks': '#EF4444',
+  'Sports/Fitness': '#F59E0B',
+  'Workshops': '#14B8A6',
+  'Networking': '#EC4899',
+  'Other': '#6B7280'
+};
+
+// Load and display events
+async function loadEvents() {
+  try {
+    const response = await fetch('/api/events');
+    const events = await response.json();
+    
+    displayEventsOnMap(events);
+    displayEventsList(events);
+    setupFilters(events);
+  } catch (error) {
+    console.error('Failed to load events:', error);
+    document.getElementById('events-list').innerHTML = '<p class="text-red-500">Failed to load events</p>';
+  }
+}
+
+function displayEventsOnMap(events) {
+  events.forEach(event => {
+    if (event.lat && event.lng) {
+      const marker = L.circleMarker([event.lat, event.lng], {
+        color: categoryColors[event.category] || categoryColors['Other'],
+        radius: 8,
+        fillOpacity: 0.8
+      }).addTo(map);
+      
+      marker.bindPopup(`
+        <div class="p-2">
+          <h3 class="font-bold">${event.title}</h3>
+          <p class="text-sm text-gray-600">${event.dateTime}</p>
+          <p class="text-sm">${event.venue}</p>
+          <a href="${event.url}" target="_blank" class="text-blue-600 underline">View Details</a>
+        </div>
+      `);
+    }
+  });
+}
+
+function displayEventsList(events) {
+  const listEl = document.getElementById('events-list');
+  listEl.innerHTML = events.map(event => `
+    <div class="border rounded-lg p-4 shadow-sm">
+      <h3 class="font-semibold text-lg">${event.title}</h3>
+      <p class="text-sm text-gray-600">${event.dateTime}</p>
+      <p class="text-sm">${event.venue}</p>
+      <span class="inline-block px-2 py-1 text-xs rounded" style="background-color: ${categoryColors[event.category]}20; color: ${categoryColors[event.category]}">${event.category}</span>
+      <p class="text-sm mt-2">${event.description || ''}</p>
+      <a href="${event.url}" target="_blank" class="text-blue-600 underline text-sm">View Details →</a>
+    </div>
+  `).join('');
+}
+
+function setupFilters(events) {
+  // Implementation for category and date filters
+}
+
+// Load events on page load
+loadEvents();
+</script>
+
+<style>
+@import 'leaflet/dist/leaflet.css';
+
+#map {
+  margin-left: 0;
+}
+
+@media (min-width: 768px) {
+  #map {
+    margin-left: 320px;
+  }
+}
+
+.leaflet-popup-content {
+  margin: 8px;
+}
+</style>
