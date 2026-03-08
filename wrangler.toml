@@ -1,0 +1,8 @@
+name = "bangalore-events"
+compatibility_date = "2024-03-08"
+pages_build_output_dir = "dist"
+
+[[kv_namespaces]]
+binding = "EVENTS_CACHE"
+id = "bangalore_events_cache"
+preview_id = "bangalore_events_cache_preview"
