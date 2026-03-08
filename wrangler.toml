@@ -4,5 +4,4 @@ pages_build_output_dir = "dist"
 
 [[kv_namespaces]]
 binding = "EVENTS_CACHE"
-id = "bangalore_events_cache"
-preview_id = "bangalore_events_cache_preview"
+id = "2c3e9b630d93453ab51f9240a4d86e84"
