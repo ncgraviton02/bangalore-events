@@ -2,6 +2,39 @@ export async function fetchWeekendEvents() {
   const events = [];
   const thisWeekend = getThisWeekendDates();
   
+  // Add some sample events for testing
+  const sampleEvents = [
+    {
+      title: "Bangalore Tech Meetup",
+      dateTime: thisWeekend.saturday.toLocaleString(),
+      venue: "Koramangala Social",
+      category: "Tech",
+      url: "https://example.com",
+      description: "Connect with tech enthusiasts and developers",
+      source: "Sample"
+    },
+    {
+      title: "Weekend Music Festival",
+      dateTime: thisWeekend.sunday.toLocaleString(),
+      venue: "Cubbon Park",
+      category: "Music", 
+      url: "https://example.com",
+      description: "Live music performances by local artists",
+      source: "Sample"
+    },
+    {
+      title: "Startup Networking Event",
+      dateTime: thisWeekend.saturday.toLocaleString(),
+      venue: "91springboard Koramangala",
+      category: "Startup",
+      url: "https://example.com", 
+      description: "Meet fellow entrepreneurs and investors",
+      source: "Sample"
+    }
+  ];
+  
+  events.push(...sampleEvents);
+  
   // Fetch from all sources
   const [lumaEvents, meetupEvents, eventbriteEvents] = await Promise.allSettled([
     fetchLumaEvents(thisWeekend),
@@ -29,8 +62,28 @@ function getThisWeekendDates() {
 }
 
 async function fetchLumaEvents({ saturday, sunday }) {
-  // Implementation for Luma API/scraping
-  return [];
+  try {
+    const response = await fetch('https://lu.ma/api/public/events?location=bangalore', {
+      headers: { 'User-Agent': 'Bangalore-Events-App/1.0' }
+    });
+    
+    const data = await response.json();
+    
+    return data.events
+      .filter(event => isWeekendEvent(event.start_at, saturday, sunday))
+      .map(event => ({
+        title: event.name,
+        dateTime: new Date(event.start_at).toLocaleString(),
+        venue: event.location?.name || 'TBD',
+        category: categorizeEvent(event.name + ' ' + event.description),
+        url: `https://lu.ma/${event.url}`,
+        description: event.description?.substring(0, 150) + '...' || '',
+        source: 'Luma'
+      }));
+  } catch (error) {
+    console.error('Luma fetch failed:', error);
+    return [];
+  }
 }
 
 async function fetchMeetupEvents({ saturday, sunday }) {
